@@ -1,0 +1,54 @@
+services:
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: tomato-frontend
+    ports:
+      - "5173:5173"
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  admin:
+    build:
+      context: ./admin
+    container_name: tomato-admin
+    ports:
+      - "5174:5173"
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+    container_name: tomato-backend
+    ports:
+      - "4000:4000"
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      SALT: ${SALT}
+      MONGO_URL: ${MONGO_URL}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  mongodb:
+    image: mongo:8
+    container_name: tomato-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongodb_data:
