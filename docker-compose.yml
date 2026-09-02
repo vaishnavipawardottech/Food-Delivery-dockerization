@@ -10,6 +10,8 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
+    networks:
+      - food-delivery-network
 
   admin:
     build:
@@ -21,6 +23,8 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
+    networks:
+      - food-delivery-network
 
   backend:
     build:
@@ -40,12 +44,12 @@ services:
         condition: service_healthy
     volumes:
       - uploads_data:/app/uploads
+    networks:
+      - food-delivery-network
 
   mongodb:
     image: mongo:8
     container_name: tomato-mongodb
-    ports:
-      - "27017:27017"
     volumes:
       - mongodb_data:/data/db
     restart: unless-stopped
@@ -54,7 +58,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - food-delivery-network
 
 volumes:
   mongodb_data:
   uploads_data:
+
+networks:
+  food-delivery-network:
+    driver: bridge
